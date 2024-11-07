@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Genome List</title>
+</head>
+<body>
+    <h1>Genome List</h1>
+    <ul>
+        {% for genome in genomes %}
+            <li>
+                <strong>ID:</strong> {{ genome.sequence_id }}<br>
+                <strong>Description:</strong> {{ genome.description }}<br>
+                <strong>A%:</strong> {{ genome.a_percent }}<br>
+                <strong>T%:</strong> {{ genome.t_percent }}<br>
+                <strong>C%:</strong> {{ genome.c_percent }}<br>
+                <strong>G%:</strong> {{ genome.g_percent }}<br>
+                <strong>GC%:</strong> {{ genome.gc_percent }}<br>
+                <strong>AT/GC Ratio:</strong> {{ genome.at_gc_ratio }}<br>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
