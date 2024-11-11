@@ -1,23 +1,202 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genome List</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .scrollable-container {
+            max-height: 400px; /* Adjust the height as needed */
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #loader {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        #loader video {
+            width: 200px; /* Adjust size as needed */
+            height: 200px; /* Adjust size as needed */
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #4db8ff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #b3b3b3;
+        }
+        footer p {
+            padding: 20px 0;
+        }
+        .genome-item {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        .genome-details {
+            font-size: 1.2em;
+        }
+        .genome-item strong {
+            color: #4db8ff;
+        }
+        .genome-item p {
+            color: #b3b3b3;
+            margin-top: 5px;
+        }
+        .genome-item:hover {
+            background-color: #444;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .genome-item:hover .genome-details {
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
-    <h1>Genome List</h1>
-    <ul>
-        {% for genome in genomes %}
-            <li>
-                <strong>ID:</strong> {{ genome.sequence_id }}<br>
-                <strong>Description:</strong> {{ genome.description }}<br>
-                <strong>A%:</strong> {{ genome.a_percent }}<br>
-                <strong>T%:</strong> {{ genome.t_percent }}<br>
-                <strong>C%:</strong> {{ genome.c_percent }}<br>
-                <strong>G%:</strong> {{ genome.g_percent }}<br>
-                <strong>GC%:</strong> {{ genome.gc_percent }}<br>
-                <strong>AT/GC Ratio:</strong> {{ genome.at_gc_ratio }}<br>
-            </li>
-        {% endfor %}
-    </ul>
+    <div id="loader">
+        <video src="{% static '/images/Animation - 1731332572096.webm' %}" autoplay loop muted></video>
+    </div>
+    <header class="bg-dark text-white p-3 mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <nav class="nav">
+                <a class="nav-link text-white" href="{% url 'homepage' %}">Home</a>
+                <a class="nav-link text-white" href="{% url 'add_genome' %}">Add New Genome</a>
+                <a class="nav-link text-white" href="{% url 'compare_genomes' %}">Compare Genomes</a>
+            </nav>
+            <h3 class="m-0">Genome List</h3>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <select id="chartTypeSelect" class="form-control">
+                    <option value="pie">Pie Chart</option>
+                    <option value="bar">Bar Graph</option>
+                    <option value="line">Line Graph</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <select id="genomeSelect" class="form-control">
+                    <option value="">Select a genome...</option>
+                    {% for genome in genomes %}
+                        <option value="genome-{{ genome.pk }}">{{ genome.sequence_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="scrollable-container">
+                    <ul class="list-group" id="genomeList">
+                        {% for genome in genomes %}
+                            <li class="genome-item mb-3" id="genome-{{ genome.pk }}">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="genome-details">
+                                            <strong>ID:</strong> {{ genome.sequence_id }}<br>
+                                            <strong>Description:</strong> {{ genome.description }}<br>
+                                            <strong>A%:</strong> {{ genome.a_percent }}<br>
+                                            <strong>T%:</strong> {{ genome.t_percent }}<br>
+                                            <strong>C%:</strong> {{ genome.c_percent }}<br>
+                                            <strong>G%:</strong> {{ genome.g_percent }}<br>
+                                            <strong>GC%:</strong> {{ genome.gc_percent }}<br>
+                                            <strong>AT/GC Ratio:</strong> {{ genome.at_gc_ratio }}<br>
+                                            <a class="btn btn-primary mt-2" href="{% url 'edit_genome' genome.pk %}">Edit</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <canvas id="chart{{ forloop.counter }}"></canvas>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genome Data. All rights reserved.</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(event) {
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'block'; // Show loader after 1.5 seconds
+                }, 1500);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            let charts = [];
+
+            function createChart(ctx, type, data) {
+                return new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            {% for genome in genomes %}
+                var ctx = document.getElementById('chart{{ forloop.counter }}').getContext('2d');
+                var data = {
+                    labels: ['A%', 'T%', 'C%', 'G%'],
+                    datasets: [{
+                        data: [{{ genome.a_percent }}, {{ genome.t_percent }}, {{ genome.c_percent }}, {{ genome.g_percent }}],
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                    }]
+                };
+                charts.push(createChart(ctx, chartTypeSelect.value, data));
+            {% endfor %}
+
+            chartTypeSelect.addEventListener('change', function() {
+                charts.forEach((chart, index) => {
+                    chart.destroy();
+                    var ctx = document.getElementById('chart' + (index + 1)).getContext('2d');
+                    charts[index] = createChart(ctx, chartTypeSelect.value, chart.data);
+                });
+            });
+
+            // Scroll to genome functionality
+            const genomeSelect = document.getElementById('genomeSelect');
+            genomeSelect.addEventListener('change', function() {
+                const selectedValue = genomeSelect.value;
+                if (selectedValue) {
+                    document.getElementById(selectedValue).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Genomes</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        #loader {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        #loader video {
+            width: 200px; /* Adjust size as needed */
+            height: 200px; /* Adjust size as needed */
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #4db8ff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #b3b3b3;
+        }
+        footer p {
+            padding: 20px 0;
+        }
+        .genome-details {
+            font-size: 1.2em;
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        .genome-details strong {
+            color: #4db8ff;
+        }
+        .genome-details p {
+            color: #b3b3b3;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <video src="{% static '/images/Animation - 1731332572096.webm' %}" autoplay loop muted></video>
+    </div>
+    <header class="bg-dark text-white p-3 mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <nav class="nav">
+                <a class="nav-link text-white" href="{% url 'homepage' %}">Home</a>
+                <a class="nav-link text-white" href="{% url 'genome_list' %}">Genome List</a>
+            </nav>
+            <h3 class="m-0">Compare Genomes</h3>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <select id="genomeSelect1" class="form-control">
+                    <option value="">Select first genome...</option>
+                    {% for genome in genomes %}
+                        <option value="{{ genome.pk }}">{{ genome.sequence_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <select id="genomeSelect2" class="form-control">
+                    <option value="">Select second genome...</option>
+                    {% for genome in genomes %}
+                        <option value="{{ genome.pk }}">{{ genome.sequence_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <div id="genomeDetails1" class="genome-details"></div>
+            </div>
+            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                <canvas id="comparisonChart" width="400" height="400"></canvas>
+            </div>
+            <div class="col-md-5">
+                <div id="genomeDetails2" class="genome-details"></div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genome Data. All rights reserved.</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(event) {
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'block';
+                }, 1500);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const genomeSelect1 = document.getElementById('genomeSelect1');
+            const genomeSelect2 = document.getElementById('genomeSelect2');
+            const genomeDetails1 = document.getElementById('genomeDetails1');
+            const genomeDetails2 = document.getElementById('genomeDetails2');
+            const comparisonChartCtx = document.getElementById('comparisonChart').getContext('2d');
+            let comparisonChart;
+
+            function updateGenomeDetails(selectElement, detailsElement, chartData, index) {
+                const selectedValue = selectElement.value;
+                if (selectedValue) {
+                    fetch(`/genomes/${selectedValue}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            detailsElement.innerHTML = `
+                                <strong>ID:</strong> ${data.sequence_id}<br>
+                                <strong>Description:</strong> ${data.description}<br>
+                                <strong>A%:</strong> ${data.a_percent}<br>
+                                <strong>T%:</strong> ${data.t_percent}<br>
+                                <strong>C%:</strong> ${data.c_percent}<br>
+                                <strong>G%:</strong> ${data.g_percent}<br>
+                                <strong>GC%:</strong> ${data.gc_percent}<br>
+                                <strong>AT/GC Ratio:</strong> ${data.at_gc_ratio}<br>
+                            `;
+                            chartData.datasets[index].data = [data.a_percent, data.t_percent, data.c_percent, data.g_percent];
+                            comparisonChart.update();
+                        });
+                } else {
+                    detailsElement.innerHTML = '';
+                    chartData.datasets[index].data = [0, 0, 0, 0];
+                    comparisonChart.update();
+                }
+            }
+
+            const chartData = {
+                labels: ['A%', 'T%', 'C%', 'G%'],
+                datasets: [
+                    {
+                        label: 'Genome 1',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        data: [0, 0, 0, 0]
+                    },
+                    {
+                        label: 'Genome 2',
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1,
+                        data: [0, 0, 0, 0]
+                    }
+                ]
+            };
+
+            comparisonChart = new Chart(comparisonChartCtx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            genomeSelect1.addEventListener('change', function() {
+                updateGenomeDetails(genomeSelect1, genomeDetails1, chartData, 0);
+            });
+
+            genomeSelect2.addEventListener('change', function() {
+                updateGenomeDetails(genomeSelect2, genomeDetails2, chartData, 1);
+            });
+        });
+    </script>
+</body>
+</html>

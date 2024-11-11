@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Genome Data</title>
+    <link rel="stylesheet" href="static/home.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #scene-container {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        nav a#genome-list-link {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px 0;
+            background-color: #800080; /* Purple background */
+            color: white; /* White text */
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px; /* Rounded corners */
+            transition: background-color 0.3s ease; /* Smooth transition */
+            font-family: 'Arial', sans-serif; /* Better font */
+            font-size: 16px; /* Adjust font size */
+        }
+        nav a#genome-list-link:hover {
+            background-color: #9932CC; /* Darker purple on hover */
+        }
+        header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 10; /* Ensure it is on top of the scene */
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
+        }
+        header h1 {
+            margin: 0;
+        }
+        nav {
+            margin-top: 10px;
+        }
+        #loader {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        #loader video {
+            width: 200px; /* Adjust size as needed */
+            height: 200px; /* Adjust size as needed */
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <video src="{% static 'images/Animation - 1731332572096.webm' %}" autoplay loop muted></video>
+    </div>
+    <header>
+        <h1>Welcome to Genome Data</h1>
+        <nav>
+            <a id="genome-list-link" href="{% url 'genome_list' %}">Genome List</a>
+        </nav>
+    </header>
+
+    <main>
+        <div id="scene-container"></div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genome Data. All rights reserved.</p>
+    </footer>
+    <script>
+        // Initialize the scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000); // Adjust FOV to 30 for more zoom
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // Enable alpha for transparency
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0); // Set background color to transparent
+        document.getElementById('scene-container').appendChild(renderer.domElement);
+
+        // Add basic lighting
+        const light = new THREE.AmbientLight(0x404040); // soft white light
+        scene.add(light);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        scene.add(directionalLight);
+
+        // Add OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.enableRotate = false; // Disable rotation
+        controls.enablePan = false; // Disable panning
+        controls.enableZoom = false; // Disable zoom
+        controls.maxPolarAngle = Math.PI / 2;
+
+        let mixer;
+
+        // Load the GLTF model
+        const loader = new THREE.GLTFLoader();
+        loader.load('static/models/scene.gltf', function (gltf) {
+            scene.add(gltf.scene);
+            camera.position.set(0, 1, 0.0001); // Adjust camera position to zoom in closer
+
+            // Set up animation
+            mixer = new THREE.AnimationMixer(gltf.scene);
+            gltf.animations.forEach((clip) => {
+                mixer.clipAction(clip).play();
+            });
+
+            animate();
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+            renderer.render(scene, camera);
+        }
+
+        const clock = new THREE.Clock();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Ease-in-out function
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // Pan into the scene and navigate to the href
+        document.getElementById('genome-list-link').addEventListener('click', function(event) {
+            event.preventDefault();
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'block'; // Show loader after 1.5 seconds
+            }, 2000);
+            const targetPosition = new THREE.Vector3(0, 1, 0.1); // Target position to pan to
+            const duration = 2000; // Increase duration to 2 seconds for smoother transition
+            const startPosition = camera.position.clone();
+            const startFov = camera.fov;
+            const targetFov = 0; // Target FOV
+            const startTime = performance.now();
+
+            function pan() {
+                const elapsed = performance.now() - startTime;
+                const t = Math.min(elapsed / duration, 1);
+                const easedT = easeInOutQuad(t);
+                camera.position.lerpVectors(startPosition, targetPosition, easedT);
+                camera.fov = startFov + (targetFov - startFov) * easedT;
+                camera.updateProjectionMatrix();
+                controls.update();
+                renderer.render(scene, camera);
+
+                if (t < 1) {
+                    requestAnimationFrame(pan);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = event.target.href;
+                    }, 500); // Add a slight delay before navigating
+                }
+            }
+
+            pan();
+        });
+    </script>
+</body>
+</html>

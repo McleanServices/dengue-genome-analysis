@@ -14,6 +14,7 @@ def add_genome(fasta_file, description=None):
     
     genome_dengue = Genome_Dengue(fasta_file)
     for record in genome_dengue.records:
+        print(f"Processing record: {record['sequence_id']}")
         if not Genome.objects.filter(sequence_id=record['sequence_id']).exists():
             genome = Genome(
                 sequence_id=record['sequence_id'],
@@ -26,6 +27,7 @@ def add_genome(fasta_file, description=None):
                 at_gc_ratio=record['at_gc_ratio']
             )
             genome.save()
+            print(f"Added genome: {record['sequence_id']}")
         else:
             print(f"Duplicate sequence found: {record['sequence_id']}")
 
