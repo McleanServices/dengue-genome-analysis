@@ -29,13 +29,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['keigonwilson.com']
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://keigonwilson.com',
-]
-
-CORS_ALLOWED_ORIGINS = [
-    'https://keigonwilson.com',
-]
 
 # Application definition
 
