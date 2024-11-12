@@ -6,6 +6,20 @@
 
 Ce projet est une application web basée sur Django pour analyser et comparer les génomes du virus Dengue. Elle propose des fonctionnalités pour ajouter, modifier, supprimer et comparer des séquences génomiques. L'application comprend également une visualisation 3D des données génomiques en utilisant Three.js 🌐.
 
+## But du Projet 🎯
+
+Le but de ce devoir est de créer un programme orienté objet, permettant de visualiser des séquences génomiques correspondant au virus de la Dengue. L'utilisateur pourra récolter des séquences au format FASTA (exemple : [https://www.ncbi.nlm.nih.gov/nuccore/MW315185.1?report=fasta](https://www.ncbi.nlm.nih.gov/nuccore/MW315185.1?report=fasta)).
+
+Notre programme contiendra une classe `Genome_Dengue`, où l'on pourra stocker comme attributs : 
+- **L'identifiant de séquence**
+- **La description**
+- **Les mesures suivantes** :
+  - Pourcentage des bases A, T, C, G
+  - Contenu GC
+  - Ratio AT/GC
+
+Ces informations seront utilisées pour effectuer des analyses, visualisations et comparaisons de génomes.
+
 ## Fonctionnalités 🚀
 
 - **Page d'accueil** 🏠 : Une page d'accueil accueillante avec une visualisation 3D.
@@ -121,6 +135,4 @@ Pour toute question ou suggestion, veuillez ouvrir un problème ou contacter le 
 
 Ce fichier README fournit un aperçu complet du projet **Analyse du Génome du Dengue**, incluant les instructions d'installation, les détails d'utilisation et des informations sur la structure et les dépendances du projet.
 ```
-
-
 
