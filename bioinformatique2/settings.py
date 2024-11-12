@@ -133,13 +133,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # Remove STATICFILES_DIRS if the directory does not exist
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
-# ]
-
 STATICFILES_DIRS = [
-    BASE_DIR / 'genomes/static',  # This is where your static files are located
+    os.path.join(BASE_DIR, 'static'),
 ]
+
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'genomes/static',  # This is where your static files are located
+# ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
