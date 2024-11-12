@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Genome Data</title>
-    <link rel="stylesheet" href="{% static 'home.css' %}">
+    <!-- Remove the external stylesheet link -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -65,6 +66,88 @@
         #loader video {
             width: 200px; /* Adjust size as needed */
             height: 200px; /* Adjust size as needed */
+        }
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            overflow: hidden; /* Hide overflowing elements */
+            height: 100vh;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #4db8ff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #b3b3b3;
+        }
+        footer p {
+            padding: 20px 0;
+        }
+        /* Genome List */
+        .genome-list {
+            list-style-type: none;
+        }
+        .genome-item {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        .genome-details {
+            font-size: 1.2em;
+        }
+        .genome-item strong {
+            color: #4db8ff;
+        }
+        .genome-item p {
+            color: #b3b3b3;
+            margin-top: 5px;
+        }
+        .genome-item:hover {
+            background-color: #444;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .genome-item:hover .genome-details {
+            color: #ffffff;
+        }
+        #trail {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        /* The DNA icon (adjust the size according to your image) */
+        .dna-trail {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://th.bing.com/th/id/R.417561d6'); /* Replace with your DNA icon path */
+            background-size: cover;
+            pointer-events: none;
+            animation: fadeOut 1s forwards;
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0);
+            }
         }
     </style>
 </head>
