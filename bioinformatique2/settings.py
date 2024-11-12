@@ -37,6 +37,9 @@ CORS_ALLOWED_ORIGINS = [
     'https://keigonwilson.com',
 ]
 
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+
 # Application definition
 
 INSTALLED_APPS = [
